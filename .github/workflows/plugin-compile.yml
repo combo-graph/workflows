@@ -51,7 +51,7 @@ jobs:
       - name: Package plugin
         id: package-app
         # run: docker exec unreal-${{ matrix.unreal }} ue4 package
-        run: docker exec -w /workspace/${{ inputs.plugin_path }} unreal ue4 package
+        run: docker exec -w /workspace/${{ inputs.plugin_path }} unreal-${{ matrix.unreal }} ue4 package
 
       - name: rm container
         if: always()
