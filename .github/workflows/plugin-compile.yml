@@ -16,6 +16,10 @@ on:
       plugin_path:
           default: ""
           type: string
+      # Name of the Filter to pass down to Automation RunTests ...
+      tests_suite:
+          default: ""
+          type: string
 
 # Idea is to run the job in parallel in all three last engine versions, uncomment concurency group to only allow one at a time
 # concurrency: 
@@ -49,9 +53,51 @@ jobs:
           docker exec unreal-${{ matrix.unreal }} ue4 setroot /home/ue4/UnrealEngine
 
       - name: Package plugin
-        id: package-app
-        # run: docker exec unreal-${{ matrix.unreal }} ue4 package
         run: docker exec -w /workspace/${{ inputs.plugin_path }} unreal-${{ matrix.unreal }} ue4 package
+
+      - name: Test plugin
+        if: ${{ inputs.tests_suite != '' }}
+        run: docker exec -w /workspace/${{ inputs.plugin_path }} unreal-${{ matrix.unreal }} ue4 package
+
+      # Note: Would only work with main plugin and tests plugin separated, eg. ./Plugin and ./PluginTests
+      # Would need to rework the worfklow or provide more input options for more flexibility
+      - name: Setup TP_Blank template project to run tests within
+        if: ${{ inputs.tests_suite != '' }}
+        run: |
+          npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
+          npx -y shx mkdir -p TP_Blank/Plugins
+          npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
+          npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
+
+      - name: ue4 build Development Editor TP_Blank
+        if: ${{ inputs.tests_suite != '' }}
+        run: ue4 build Development Editor
+        working-directory: ${{ github.workspace }}/TP_Blank
+
+      - name: Run Tests (editor mode, no -game)
+        if: ${{ inputs.tests_suite != '' }}
+        run: ue4 editor "${{ github.workspace }}\TP_Blank\TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="${{ github.workspace }}\TestReports\${{ steps.vars.outputs.uplugin_version_name }}-${{ matrix.unreal }}-WindowsEditor-${{ steps.vars.outputs.sha_short }}"
+        working-directory: ${{ github.workspace }}/TP_Blank
+
+      - name: Get short SHA
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+
+      - name: Print short SHA
+        run: echo "Short SHA is ${{ env.SHORT_SHA }}"
+
+      - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
+        if: always() && ${{ inputs.tests_suite != '' }}
+        run: |
+          Invoke-WebRequest -Uri https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html -OutFile index.html
+          echo "console.log('const json = ' + JSON.stringify(require('./index.json'), null, 4) + ';')" | node - > json.js
+        working-directory: ${{ github.workspace }}\TestReports\TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}
+
+      - name: Upload test artifacts
+        if: always() && ${{ inputs.tests_suite != '' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}
+          path: ${{ github.workspace }}/TestReports/TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}/*
 
       - name: rm container
         if: always()
