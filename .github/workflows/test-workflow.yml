@@ -1,0 +1,20 @@
+on:
+  workflow_call:
+    inputs:
+      plugin_name:
+        default: "${{ github.event.repository.name }}"
+        type: string
+
+jobs:
+  reusable_workflow_job:
+    if: github.actor == 'mklabs'
+    runs-on: [self-hosted, Windows]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run a one-line script
+        run: echo Hello from Octo Organization
+
+      - name: Check docker login
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
