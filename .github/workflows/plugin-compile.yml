@@ -71,12 +71,7 @@ jobs:
 
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
-        run: ue4 build Development Editor
-        working-directory: ${{ github.workspace }}/TP_Blank
-
-      - name: Run Tests (editor mode, no -game)
-        if: ${{ inputs.tests_suite != '' }}
-        run: ue4 editor "${{ github.workspace }}\TP_Blank\TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="${{ github.workspace }}\TestReports\${{ steps.vars.outputs.uplugin_version_name }}-${{ matrix.unreal }}-WindowsEditor-${{ steps.vars.outputs.sha_short }}"
+        run: docker exec -w /workspace/TP_Blank unreal-${{ matrix.unreal }} ue4 build Development Editor
         working-directory: ${{ github.workspace }}/TP_Blank
 
       - name: Get short SHA
@@ -84,6 +79,11 @@ jobs:
 
       - name: Print short SHA
         run: echo "Short SHA is ${{ env.SHORT_SHA }}"
+
+      - name: Run Tests (editor mode, no -game)
+        if: ${{ inputs.tests_suite != '' }}
+        run: docker exec -w /workspace/TP_Blank unreal-${{ matrix.unreal }} ue4 editor "${{ github.workspace }}\TP_Blank\TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="${{ github.workspace }}\TestReports\TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}"
+        working-directory: ${{ github.workspace }}/TP_Blank
 
       - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
         if: always() && ${{ inputs.tests_suite != '' }}
