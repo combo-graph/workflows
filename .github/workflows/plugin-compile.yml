@@ -24,7 +24,7 @@ on:
 
 jobs:
   linux-build-plugin:
-    name: Compile (Linux) - ${{ inputs.ue_version }}
+    name: Compile (Linux) - ${{ matrix.unreal }}
 
     if: github.actor == 'mklabs'
     runs-on: [self-hosted, Windows]
@@ -44,6 +44,7 @@ jobs:
 
       - name: Installing UE CLI
         run: |
+          docker exec unreal-${{ matrix.unreal }} pip3 install --upgrade pip
           docker exec unreal-${{ matrix.unreal }} pip3 install ue4cli
           docker exec unreal-${{ matrix.unreal }} ue4 setroot /home/ue4/UnrealEngine
 
