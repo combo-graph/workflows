@@ -48,7 +48,7 @@ jobs:
           docker run -td --name unreal-${{ matrix.unreal }} --user 1234:1000 -v ${{ github.workspace }}:/workspace --workdir /workspace ghcr.io/epicgames/unreal-engine:dev-slim-${{ matrix.unreal }}
 
           # Add the user so it has a home directory (needed for the test run later on)
-          docker exec --user root unreal useradd -u 1234 -g 1000 --create-home gh
+          docker exec --user root unreal-${{ matrix.unreal }} useradd -u 1234 -g 1000 --create-home gh
 
       - name: Installing UE CLI
         run: |
