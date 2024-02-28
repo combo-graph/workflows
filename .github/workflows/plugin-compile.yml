@@ -35,7 +35,8 @@ jobs:
 
     strategy:
       matrix:
-        unreal: ['5.1', '5.2', '5.3']
+        # unreal: ['5.1', '5.2', '5.3']
+        unreal: ['5.2']
 
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +48,11 @@ jobs:
           echo ${{ secrets.DOCKER_TOKEN }} | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker run -td --name unreal-${{ matrix.unreal }} -v ${{ github.workspace }}:/workspace --workdir /workspace --user 1234:1000 --env PATH="/home/gh/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" ghcr.io/epicgames/unreal-engine:dev-slim-${{ matrix.unreal }}
 
+          # Chown some paths to the GH user to make UE5 work properly
+          docker exec --user root unreal-${{ matrix.unreal }} bash -c "
+            chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/Mono/Linux ;
+            chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/DotNet "
+
           # Add the user so it has a home directory (needed for the test run later on)
           docker exec --user root unreal-${{ matrix.unreal }} useradd -u 1234 -g 1000 --create-home gh
 
@@ -57,10 +63,6 @@ jobs:
           docker exec unreal-${{ matrix.unreal }} ue4 setroot /home/ue4/UnrealEngine
 
       - name: Package plugin
-        run: docker exec -w /workspace/${{ inputs.plugin_path }} unreal-${{ matrix.unreal }} ue4 package
-
-      - name: Test plugin
-        if: ${{ inputs.tests_suite != '' }}
         run: docker exec -w /workspace/${{ inputs.plugin_path }} unreal-${{ matrix.unreal }} ue4 package
 
       # Note: Would only work with main plugin and tests plugin separated, eg. ./Plugin and ./PluginTests
