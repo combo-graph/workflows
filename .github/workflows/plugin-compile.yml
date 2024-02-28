@@ -90,15 +90,23 @@ jobs:
       # Trying with creating 1234 "gh" user
       - name: Run Tests (editor mode, no -game)
         if: ${{ inputs.tests_suite != '' }}
-        run: docker exec -w /workspace/TP_Blank unreal-${{ matrix.unreal }} ue4 editor "${{ github.workspace }}\TP_Blank\TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="${{ github.workspace }}\TestReports\TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}"
+        run: docker exec -w /workspace/TP_Blank unreal-${{ matrix.unreal }} ue4 editor "/workspace/TP_Blank/TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="/workspace/TestReports/TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}"
         working-directory: ${{ github.workspace }}/TP_Blank
 
       - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
         if: always() && ${{ inputs.tests_suite != '' }}
         run: |
-          Invoke-WebRequest -Uri https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html -OutFile index.html
+          docker exec --user root unreal-${{ matrix.unreal }} sudo apt-get -y install nodejs
+          docker exec -w /workspace/TestReports/TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }} unreal-${{ matrix.unreal }} curl https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html > index.html
           echo "console.log('const json = ' + JSON.stringify(require('./index.json'), null, 4) + ';')" | node - > json.js
         working-directory: ${{ github.workspace }}\TestReports\TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}
+
+      # - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
+      #   if: always() && ${{ inputs.tests_suite != '' }}
+      #   run: |
+      #     Invoke-WebRequest -Uri https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html -OutFile index.html
+      #     echo "console.log('const json = ' + JSON.stringify(require('./index.json'), null, 4) + ';')" | node - > json.js
+      #   working-directory: ${{ github.workspace }}\TestReports\TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}
 
       - name: Upload test artifacts
         if: always() && ${{ inputs.tests_suite != '' }}
