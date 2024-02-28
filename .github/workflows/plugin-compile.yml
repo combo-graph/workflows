@@ -40,11 +40,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # the ue4 group in the docker container: gid=1000
+      # Credits https://github.com/outoftheboxplugins/BuildMachines/blob/master/.github/workflows/compile-plugin.yml#L51
       - name: Run Docker container
         run: |
           echo ${{ secrets.DOCKER_TOKEN }} | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          # docker run -td --name unreal-${{ matrix.unreal }} --user root -v ${{ github.workspace }}:/workspace --workdir /workspace/${{ inputs.plugin_path }} ghcr.io/epicgames/unreal-engine:dev-slim-${{ matrix.unreal }}
-          docker run -td --name unreal-${{ matrix.unreal }} --user root -v ${{ github.workspace }}:/workspace --workdir /workspace ghcr.io/epicgames/unreal-engine:dev-slim-${{ matrix.unreal }}
+          docker run -td --name unreal-${{ matrix.unreal }} --user 1234:1000 -v ${{ github.workspace }}:/workspace --workdir /workspace ghcr.io/epicgames/unreal-engine:dev-slim-${{ matrix.unreal }}
+
+          # Add the user so it has a home directory (needed for the test run later on)
+          docker exec --user root unreal useradd -u 1234 -g 1000 --create-home gh
 
       - name: Installing UE CLI
         run: |
@@ -80,6 +84,8 @@ jobs:
       - name: Print short SHA
         run: echo "Short SHA is ${{ env.SHORT_SHA }}"
 
+      # Note: Got "Refusing to run with the root privileges." error when running the test suite
+      # Trying with creating 1234 "gh" user
       - name: Run Tests (editor mode, no -game)
         if: ${{ inputs.tests_suite != '' }}
         run: docker exec -w /workspace/TP_Blank unreal-${{ matrix.unreal }} ue4 editor "${{ github.workspace }}\TP_Blank\TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="${{ github.workspace }}\TestReports\TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}"
