@@ -49,8 +49,11 @@ jobs:
           docker run -td --name unreal-${{ matrix.unreal }} -v ${{ github.workspace }}:/workspace --workdir /workspace --user 1234:1000 --env PATH="/home/gh/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" ghcr.io/epicgames/unreal-engine:dev-slim-${{ matrix.unreal }}
 
           # Chown some paths to the GH user to make UE5 work properly
+          # For Plugins, would ideally be better to only chown their Content/ directory
           docker exec --user root unreal-${{ matrix.unreal }} bash -c "
             chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/Mono/Linux ;
+            chown -R 1234 /home/ue4/UnrealEngine/Engine/Content ;
+            chown -R 1234 /home/ue4/UnrealEngine/Engine/Plugins ;
             chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/DotNet "
 
           # Add the user so it has a home directory (needed for the test run later on)
