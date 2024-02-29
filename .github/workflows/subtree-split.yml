@@ -11,14 +11,48 @@ on:
             repo:
                 default: "${{ github.repository_owner }}"
                 type: string
+            config_path:
+              default: ".github/subtree-config.json"
+              type: string
 
 jobs:
     sync_commits:
         runs-on: ubuntu-latest
         name: Sync commits
 
-        if: github.repository == 'BlueprintAttributes/BlueprintAttributes' # Execute this workflow job only on the main repository.
+        steps:
+          - name: Dump Inputs context
+            env:
+              GITHUB_CONTEXT: ${{ toJson(inputs) }}
+            run: echo "$GITHUB_CONTEXT"
 
+          - uses: actions/checkout@v4
+            with:
+                persist-credentials: false
+                fetch-depth: 0
+
+          # Add a personal access token to the repository secrets. This will allow the splitter action to push the new commits
+          - uses: frankdejonge/use-github-token@1.0.2
+            with:
+                authentication: "mklabs:${{ secrets.ACCESS_TOKEN }}"
+
+          # Cache the splitsh executable to speedup future runs
+          - name: Cache splitsh-lite
+            uses: actions/cache@v2
+            with:
+                path: "./splitsh"
+                key: "${{ runner.os }}-splitsh-v101"
+
+          # Sync commits and tags for the configured subtree splits
+          - name: subtree split
+            uses: acrobat/subtree-splitter@v1.1.4
+            with:
+                config-path: .github/subtree-splitter-config.json # Reference the location where you saved your config file
+
+    dump:
+        runs-on: ubuntu-latest
+        name: Sync commits
+        if: false
         steps:
             - name: Run a one-line script
               run: echo Hello from Octo Organization
@@ -51,28 +85,3 @@ jobs:
               env:
                 MATRIX_CONTEXT: ${{ toJson(matrix) }}
               run: echo "$MATRIX_CONTEXT"
-
-            # - uses: actions/checkout@v2
-            #   with:
-            #       persist-credentials: false
-            #       fetch-depth: 0
-
-            # # Add a personal access token to the repository secrets. This will allow the splitter action to push the new commits
-            # - uses: frankdejonge/use-github-token@1.0.2
-            #   with:
-            #       authentication: "username:${{ secrets.PERSONAL_GITHUB_TOKEN }}"
-            #       user_name: "Committer name"
-            #       user_email: "Committer email"
-
-            # # Cache the splitsh executable to speedup future runs
-            # - name: Cache splitsh-lite
-            #   uses: actions/cache@v2
-            #   with:
-            #       path: "./splitsh"
-            #       key: "${{ runner.os }}-splitsh-v101"
-
-            # # Sync commits and tags for the configured subtree splits
-            # - name: subtree split
-            #   uses: acrobat/subtree-splitter@v1.1.3
-            #   with:
-            #       config-path: .github/subtree-splitter-config.json # Reference the location where you saved your config file
