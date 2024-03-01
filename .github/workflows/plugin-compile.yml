@@ -184,7 +184,7 @@ jobs:
       - name: Setup TP_Blank template project to run tests within
         if: ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec pwd
+          docker exec ${{ env.CONTAINER_NAME }} pwd
           docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "C:\UnrealEngine\Templates\TP_Blank" -Destination "C:\workspace\TP_Blank" -Recurse
           docker exec -w C:\workspace\TP_Blank ${{ env.CONTAINER_NAME }} New-Item -Path . -Name "Plugins" -ItemType "directory"
           docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "${{ inputs.plugin_path }}\dist" -Destination "TP_Blank\Plugins\${{ inputs.plugin_path }}" -Recurse
