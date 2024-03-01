@@ -51,7 +51,7 @@ jobs:
 
     dump:
         runs-on: ubuntu-latest
-        name: Sync commits
+        name: Debug
         if: false
         steps:
             - name: Run a one-line script
