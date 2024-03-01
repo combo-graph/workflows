@@ -187,7 +187,7 @@ jobs:
       - name: Setup TP_Blank template project to run tests within
         if: ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
+          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r "C:\UnrealEngine\Templates\TP_Blank" "C:\workspace\TP_Blank"
           docker exec ${{ env.CONTAINER_NAME }} npx -y shx mkdir -p TP_Blank/Plugins
           docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
           docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
