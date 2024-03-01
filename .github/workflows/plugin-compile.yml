@@ -171,7 +171,7 @@ jobs:
           docker run --isolation process -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
 
       - name: Install nodejs
-        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs -y
+        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
 
       - name: Installing UE CLI
         run: |
@@ -187,10 +187,16 @@ jobs:
       - name: Setup TP_Blank template project to run tests within
         if: ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r "C:\UnrealEngine\Templates\TP_Blank" "C:\workspace\TP_Blank"
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx mkdir -p TP_Blank/Plugins
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
+          npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
+          npx -y shx mkdir -p TP_Blank/Plugins
+          npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
+          npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
+
+          # Troubles running those commands (even with Copy-Item) in the container
+          # docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r "C:\UnrealEngine\Templates\TP_Blank" "C:\workspace\TP_Blank"
+          # docker exec ${{ env.CONTAINER_NAME }} npx -y shx mkdir -p TP_Blank/Plugins
+          # docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
+          # docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
 
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
