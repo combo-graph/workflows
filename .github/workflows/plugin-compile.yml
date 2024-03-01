@@ -37,19 +37,8 @@ on:
 
 jobs:
 
-  pre-build:
-    name: Setup vars
-
-    if: github.actor == 'mklabs'
-    runs-on: [self-hosted, Windows]
-
-    steps:
-      - name: Get short SHA
-        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
-
   linux-build-plugin:
     name: Compile (Linux) - ${{ matrix.unreal }}
-    needs: 'pre-build'
 
     if: github.actor == 'mklabs' && inputs.platform == 'Linux'
     runs-on: [self-hosted, Windows]
@@ -60,6 +49,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get short SHA
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
       - name: Set container name
         run: echo "CONTAINER_NAME=$("unreal-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
@@ -161,6 +153,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get short SHA
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+
       - name: Set container name
         run: echo "CONTAINER_NAME=$("unreal-win64-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
 
@@ -189,7 +184,8 @@ jobs:
       - name: Setup TP_Blank template project to run tests within
         if: ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "C:\UnrealEngine\Templates\TP_Blank\" -Destination "C:\workspace\TP_Blank" -Recurse
+          docker exec pwd
+          docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "C:\UnrealEngine\Templates\TP_Blank" -Destination "C:\workspace\TP_Blank" -Recurse
           docker exec -w C:\workspace\TP_Blank ${{ env.CONTAINER_NAME }} New-Item -Path . -Name "Plugins" -ItemType "directory"
           docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "${{ inputs.plugin_path }}\dist" -Destination "TP_Blank\Plugins\${{ inputs.plugin_path }}" -Recurse
           docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "${{ inputs.plugin_path }}Tests" -Destination "TP_Blank\Plugins\${{ inputs.plugin_path }}Tests" -Recurse
