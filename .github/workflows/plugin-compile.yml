@@ -7,24 +7,28 @@ name: Compile Plugin
 on:
   workflow_call:
     inputs:
-      # Note: done with matrix config, ideally would be nice if input supports arrays
-      # ue_version:
-      #   default: "5.3"
-      #   type: string
+      ue_versions:
+        # Specify the list of unreal versions to build against
+        # Ex: "['5.1', '5.2', '5.3']"
+        default: "['5.3']"
+        type: string
 
       # if plugin to build lives under a sub-directory in the repo
       plugin_path:
-          default: ""
-          type: string
+        default: ""
+        description: if plugin to build lives under a sub-directory in the repo
+        type: string
+
       # Name of the Filter to pass down to Automation RunTests ...
       tests_suite:
-          default: ""
-          type: string
+        default: ""
+        description: Name of the Filter to pass down to Automation RunTests (if empty or not supplied, will skip test run)
+        type: string
 
 # Idea is to run the job in parallel in all three last engine versions, uncomment concurency group to only allow one at a time
-# concurrency: 
+# concurrency:
 #   group: linux-compile-${{ github.head_ref }}
-#   cancel-in-progress: true 
+#   cancel-in-progress: true
 
 jobs:
   linux-build-plugin:
@@ -35,7 +39,7 @@ jobs:
 
     strategy:
       matrix:
-        unreal: ['5.1', '5.2', '5.3']
+        unreal: ${{ fromJson(inputs.ue_versions) }}
 
     steps:
       - uses: actions/checkout@v4
