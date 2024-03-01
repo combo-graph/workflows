@@ -170,6 +170,9 @@ jobs:
           echo ${{ secrets.DOCKER_TOKEN }} | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker run --isolation process -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
 
+      - name: Install nodejs
+        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs -y
+
       - name: Installing UE CLI
         run: |
           docker exec ${{ env.CONTAINER_NAME }} pip3 install --upgrade pip
@@ -204,7 +207,6 @@ jobs:
       - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
         if: always() && ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec --user root ${{ env.CONTAINER_NAME }} cinst nodejs -y
           docker exec -w /workspace/TestReports/TestReports-${{ matrix.unreal }}-Windows-${{ env.SHORT_SHA }} ${{ env.CONTAINER_NAME }} Invoke-WebRequest -Uri https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html -OutFile index.html
           echo "console.log('const json = ' + JSON.stringify(require('./index.json'), null, 4) + ';')" | node - > json.js
 
