@@ -64,6 +64,10 @@ jobs:
       - name: Set container name
         run: echo "CONTAINER_NAME=$("unreal-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
 
+      - name: Switch to Linux Container
+        run: |
+          & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchLinuxEngine
+
       # the ue4 group in the docker container: gid=1000
       # Credits https://github.com/outoftheboxplugins/BuildMachines/blob/master/.github/workflows/compile-plugin.yml#L51
       - name: Run Docker container
