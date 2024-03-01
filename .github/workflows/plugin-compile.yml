@@ -146,3 +146,17 @@ jobs:
         run: |
           docker stop ${{ env.CONTAINER_NAME }}
           docker rm ${{ env.CONTAINER_NAME }}
+
+
+  windows-build-plugin:
+    name: Compile (Windows) - ${{ matrix.unreal }}
+
+    if: github.actor == 'mklabs' && inputs.platform == 'Windows'
+    runs-on: [self-hosted, Windows]
+
+    strategy:
+      matrix:
+        unreal: ${{ fromJson(inputs.ue_versions) }}
+
+    steps:
+      - uses: actions/checkout@v4
