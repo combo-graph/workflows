@@ -13,6 +13,11 @@ on:
         default: "['5.3']"
         type: string
 
+      platform:
+        default: Linux
+        description: Target platform to build on (Linux or Windows)
+        type: string
+
       # if plugin to build lives under a sub-directory in the repo
       plugin_path:
         default: ""
