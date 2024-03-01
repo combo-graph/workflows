@@ -187,11 +187,10 @@ jobs:
       - name: Setup TP_Blank template project to run tests within
         if: ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec ${{ env.CONTAINER_NAME }} pwd
-          docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "C:\UnrealEngine\Templates\TP_Blank" -Destination "C:\workspace\TP_Blank" -Recurse
-          docker exec -w C:\workspace\TP_Blank ${{ env.CONTAINER_NAME }} New-Item -Path . -Name "Plugins" -ItemType "directory"
-          docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "${{ inputs.plugin_path }}\dist" -Destination "TP_Blank\Plugins\${{ inputs.plugin_path }}" -Recurse
-          docker exec ${{ env.CONTAINER_NAME }} Copy-Item -Path "${{ inputs.plugin_path }}Tests" -Destination "TP_Blank\Plugins\${{ inputs.plugin_path }}Tests" -Recurse
+          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
+          docker exec ${{ env.CONTAINER_NAME }} npx -y shx mkdir -p TP_Blank/Plugins
+          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
+          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
 
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
