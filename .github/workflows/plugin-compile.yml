@@ -199,6 +199,12 @@ jobs:
           # docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
           # docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
 
+      - name: Disable WindowsMoviePlayer plugin for test run
+        # WindowsMoviePlayer crashes on WindowsMoviePlayer.cpp
+        run: |
+          node -pe 'const { readFileSync, writeFileSync } = require("fs"); const o = JSON.parse(readFileSync("./TP_Blank.uproject", "utf8")); o.Plugins.push({ Name: "WindowsMoviePlayer", Enabled: false }); writeFileSync("./TP_Blank.uproject", JSON.stringify(o, null, "\t"))'
+        working-directory: ${{ github.workspace }}/TP_Blank
+
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
         run: docker exec -w C:\workspace\TP_Blank ${{ env.CONTAINER_NAME }} ue4 build Development Editor
