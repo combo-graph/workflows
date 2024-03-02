@@ -219,7 +219,7 @@ jobs:
       - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
         if: always() && ${{ inputs.tests_suite != '' }}
         run: |
-          docker exec -w /workspace/TestReports/TestReports-${{ matrix.unreal }}-Windows-${{ env.SHORT_SHA }} ${{ env.CONTAINER_NAME }} Invoke-WebRequest -Uri https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html -OutFile index.html
+          docker exec -w --workdir C:\workspace\TestReports\TestReports-${{ matrix.unreal }}-Windows-${{ env.SHORT_SHA }} ${{ env.CONTAINER_NAME }} Invoke-WebRequest -Uri https://gist.githubusercontent.com/mklabs/98a3badabcdef902618e0a59a935b597/raw/2596dfff2f4c9aa40d9e361af7a6d495ccddae94/index.html -OutFile index.html
           echo "console.log('const json = ' + JSON.stringify(require('./index.json'), null, 4) + ';')" | node - > json.js
 
       - name: Upload test artifacts
