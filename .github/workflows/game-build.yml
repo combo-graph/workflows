@@ -111,10 +111,13 @@ jobs:
       - name: Debug release downloader
         env:
           FILE_CONTEXT: ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}
-        run: echo "$FILE_CONTEXT"
+        # run: echo "$FILE_CONTEXT"
+        run: echo "FILE_CONTEXT="${{ fromJson(steps.download.outputs.downloaded_files)[0] }}" >> $env:GITHUB_ENV
 
       - name: Debug release downloader file
-        run: echo "File - ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}"
+        run: |
+          echo "File - ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}"
+          echo "File env - $FILE_CONTEXT"
 
       - name: Unzip release
         run: |
