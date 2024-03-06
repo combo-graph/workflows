@@ -118,11 +118,12 @@ jobs:
       - name: Debug release downloader file
         run: |
           echo "File - ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}"
-          echo "File env - ${{ env.SHORT_SHA }}"
+          echo "File env - ${{ env.FILE_CONTEXT }}"
 
       - name: Unzip release
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("${{ env.SHORT_SHA }}", "$PWD")
+          Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("${{ env.FILE_CONTEXT }}", "$PWD")
+        working-directory: release-downloads
 
       - name: Package Plugin
         # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
