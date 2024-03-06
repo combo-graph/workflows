@@ -112,7 +112,8 @@ jobs:
         env:
           FILE_CONTEXT: ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}
         # run: echo "$FILE_CONTEXT"
-        run: echo "FILE_CONTEXT="${{ fromJson(steps.download.outputs.downloaded_files)[0] }}" >> $env:GITHUB_ENV
+        run: echo "FILE_CONTEXT=\"${{ fromJson(steps.download.outputs.downloaded_files)[0] }}\" >> $env:GITHUB_ENV
+        # run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
       - name: Debug release downloader file
         run: |
