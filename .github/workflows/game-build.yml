@@ -142,7 +142,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: dist/*.zip
-          tag: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
+          # tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
 
