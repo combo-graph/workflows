@@ -112,13 +112,15 @@ jobs:
           # The name of the file to download.
           # Use this field only to specify filenames other than tarball or zipball, if any.
           # Supports wildcard pattern (eg: '*', '*.deb', '*.zip' etc..)
-          fileName: "*+${{ matrix.unreal }}*.zip"
-          
+          # fileName: "*+${{ matrix.unreal }}*.zip"
+          # filename: BlueprintAttributes_0.5.0+5.3_8154e628.zip
+          filename: "*.zip"
+
           # Download the attached tarball (*.tar.gz)
-          tarBall: false
+          # tarBall: false
           
           # Download the attached zipball (*.zip)
-          zipBall: false
+          # zipBall: false
           
           # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
           # It will create the target directory automatically if not present
@@ -138,7 +140,7 @@ jobs:
           # The URL of the Github API, only use this input if you are using Github Enterprise
           # Default: "https://api.github.com"
           # Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
-          github-api-url: ""
+          # github-api-url: ""
 
       - name: Package Game
         run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
