@@ -32,7 +32,12 @@ on:
 
       plugin_repository:
         default: ""
-        description: "If game builds rely on a plugin to download before packaging (passed down to https://github.com/robinraju/release-downloader as repository option) - Expected format {owner}/{repo}"
+        description: "Plugin repo release to download if game builds rely on a plugin to download before packaging (passed down to https://github.com/robinraju/release-downloader as repository option) - Expected format {owner}/{repo}"
+        type: "string"
+
+      plugin_path:
+        default: "Plugins/${{ inputs.plugin_repository || github.repository }}"
+        description: "Download path for plugin release If game builds rely on a plugin to download before packaging (passed down to https://github.com/robinraju/release-downloader as repository option) - Expected format Plugins/{plugin_name}"
         type: "string"
 
 # Idea is to run the job in parallel in all three last engine versions, uncomment concurency group to only allow one at a time
@@ -125,7 +130,7 @@ jobs:
           # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
           # It will create the target directory automatically if not present
           # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
-          out-file-path: "release-downloads"
+          out-file-path: "${{ inputs.plugin_path }}"
 
           # A flag to set if the downloaded assets are archives and should be extracted
           # Checks all downloaded files if they end with zip, tar or tar.gz and extracts them, if true.
