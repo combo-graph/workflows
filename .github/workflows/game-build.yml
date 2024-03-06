@@ -93,7 +93,7 @@ jobs:
 
       - uses: robinraju/release-downloader@v1.9
         if: ${{ inputs.plugin_repository != '' }}
-        id: release-download
+        id: download
         with: 
           repository: "${{ inputs.plugin_repository }}"
           latest: true
@@ -110,7 +110,7 @@ jobs:
 
       - name: Debug release downloader
         env:
-          RELEASE_CONTEXT: ${{ toJson(steps.release-download.outputs.downloaded_files)[0] }}
+          RELEASE_CONTEXT: ${{ toJson(steps.download.outputs) }}
         run: echo "$RELEASE_CONTEXT"
 
       # - name: Unzip release
