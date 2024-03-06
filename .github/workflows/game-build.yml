@@ -113,6 +113,11 @@ jobs:
           RELEASE_CONTEXT: ${{ toJson(steps.download.outputs) }}
         run: echo "$RELEASE_CONTEXT"
 
+      - name: Debug release downloader file
+        env:
+          FILE_CONTEXT: ${{ toJson(steps.download.outputs.downloaded_files)[0] }}
+        run: echo "$FILE_CONTEXT"
+
       # - name: Unzip release
       #   run: |
       #     Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/*.zip", "$PWD")
