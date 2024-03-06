@@ -64,7 +64,6 @@ jobs:
       # Credits https://github.com/outoftheboxplugins/BuildMachines/blob/master/.github/workflows/compile-plugin.yml#L51
       - name: Run Docker container
         run: |
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
           docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
 
