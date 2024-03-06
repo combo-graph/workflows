@@ -82,10 +82,12 @@ jobs:
           docker exec ${{ env.CONTAINER_NAME }} ue4 setroot "C:\UnrealEngine"
 
       - name: Debug release download
+        if: ${{ inputs.plugin_repository != '' }}
         run: |
           echo "Trying to download *+${{ matrix.unreal }}*.zip"
 
       - uses: robinraju/release-downloader@v1.9
+        if: ${{ inputs.plugin_repository != '' }}
         with: 
           # The source repository path.
           # Expected format {owner}/{repo}
