@@ -152,8 +152,8 @@ jobs:
           overwrite: true
           file_glob: true
 
-      # - name: rm container
-      #   if: always()
-      #   run: |
-      #     docker stop ${{ env.CONTAINER_NAME }}
-      #     docker rm ${{ env.CONTAINER_NAME }}
+      - name: rm container
+        if: always()
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }}
+          docker rm ${{ env.CONTAINER_NAME }}
