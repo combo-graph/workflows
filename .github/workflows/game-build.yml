@@ -63,28 +63,28 @@ jobs:
       - name: Get short SHA
         run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-      # - name: Set container name
-      #   run: echo "CONTAINER_NAME=$("unreal-win64-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
+      - name: Set container name
+        run: echo "CONTAINER_NAME=$("unreal-win64-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
 
-      # - name: Switch to Windows Container
-      #   run: |
-      #     & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchWindowsEngine
+      - name: Switch to Windows Container
+        run: |
+          & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchWindowsEngine
 
       # the ue4 group in the docker container: gid=1000
       # Credits https://github.com/outoftheboxplugins/BuildMachines/blob/master/.github/workflows/compile-plugin.yml#L51
-      # - name: Run Docker container
-      #   run: |
-      #     # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
-      #     docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
+      - name: Run Docker container
+        run: |
+          # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
+          docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
 
-      # - name: Install nodejs
-      #   run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
+      - name: Install nodejs
+        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
 
-      # - name: Installing UE CLI
-      #   run: |
-      #     docker exec ${{ env.CONTAINER_NAME }} pip3 install --upgrade pip
-      #     docker exec ${{ env.CONTAINER_NAME }} pip3 install ue4cli
-      #     docker exec ${{ env.CONTAINER_NAME }} ue4 setroot "C:\UnrealEngine"
+      - name: Installing UE CLI
+        run: |
+          docker exec ${{ env.CONTAINER_NAME }} pip3 install --upgrade pip
+          docker exec ${{ env.CONTAINER_NAME }} pip3 install ue4cli
+          docker exec ${{ env.CONTAINER_NAME }} ue4 setroot "C:\UnrealEngine"
 
       - name: Debug release download
         if: ${{ inputs.plugin_repository != '' }}
@@ -114,25 +114,26 @@ jobs:
         run: echo "FILE_CONTEXT=${{ fromJson(steps.download.outputs.downloaded_files)[0] }}" >> $env:GITHUB_ENV
 
       - name: Unzip release
-        run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("${{ env.FILE_CONTEXT }}", "$PWD")
+        # ${{ env.FILE_CONTEXT }} on docker container would be different
+        # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("${{ env.FILE_CONTEXT }}", "$PWD")
+        run: Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("${{ env.FILE_CONTEXT }}", "$PWD")
         working-directory: release-downloads
 
       - name: Package Plugin
-        # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
-        run: ue4 package
-        working-directory: release-downloads
+        run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
+        # run: ue4 package
+        # working-directory: release-downloads
 
       - name: move plugin
         # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
         run: |
-          mkdir Plugins
-          npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
+          docker exec ${{ env.CONTAINER_NAME }} mkdir Plugins
+          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
 
       - name: Package Game
-        # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
-        run: ue4 package ${{ inputs.build_configuration }}
-        working-directory: ${{ inputs.project_path }}
+        run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
+        # run: ue4 package ${{ inputs.build_configuration }}
+        # working-directory: ${{ inputs.project_path }}
 
       - name: Compress archive
         run: Compress-Archive -Path .\dist\${{ inputs.platform }}\ -DestinationPath .\dist\GBA_ContentExamples_${{ inputs.build_configuration }}_${{ inputs.platform }}_${{ env.SHORT_SHA }}.zip
