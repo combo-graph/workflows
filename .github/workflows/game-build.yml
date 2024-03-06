@@ -63,28 +63,28 @@ jobs:
       - name: Get short SHA
         run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-      - name: Set container name
-        run: echo "CONTAINER_NAME=$("unreal-win64-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
+      # - name: Set container name
+      #   run: echo "CONTAINER_NAME=$("unreal-win64-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
 
-      - name: Switch to Windows Container
-        run: |
-          & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchWindowsEngine
+      # - name: Switch to Windows Container
+      #   run: |
+      #     & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchWindowsEngine
 
       # the ue4 group in the docker container: gid=1000
       # Credits https://github.com/outoftheboxplugins/BuildMachines/blob/master/.github/workflows/compile-plugin.yml#L51
-      - name: Run Docker container
-        run: |
-          # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
-          docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
+      # - name: Run Docker container
+      #   run: |
+      #     # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
+      #     docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
 
-      - name: Install nodejs
-        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
+      # - name: Install nodejs
+      #   run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
 
-      - name: Installing UE CLI
-        run: |
-          docker exec ${{ env.CONTAINER_NAME }} pip3 install --upgrade pip
-          docker exec ${{ env.CONTAINER_NAME }} pip3 install ue4cli
-          docker exec ${{ env.CONTAINER_NAME }} ue4 setroot "C:\UnrealEngine"
+      # - name: Installing UE CLI
+      #   run: |
+      #     docker exec ${{ env.CONTAINER_NAME }} pip3 install --upgrade pip
+      #     docker exec ${{ env.CONTAINER_NAME }} pip3 install ue4cli
+      #     docker exec ${{ env.CONTAINER_NAME }} ue4 setroot "C:\UnrealEngine"
 
       - name: Debug release download
         if: ${{ inputs.plugin_repository != '' }}
@@ -94,70 +94,29 @@ jobs:
       - uses: robinraju/release-downloader@v1.9
         if: ${{ inputs.plugin_repository != '' }}
         with: 
-          # The source repository path.
-          # Expected format {owner}/{repo}
-          # Default: ${{ github.repository }}
           repository: "${{ inputs.plugin_repository }}"
-          
-          # A flag to set the download target as latest release
-          # The default value is 'false'
           latest: true
-
-          # A flag to download from prerelease. It should be combined with latest flag.
-          # The default value is 'false'
-          # preRelease: true
-          
-          # The github tag. e.g: v1.0.1
-          # Download assets from a specific tag/version
-          # tag: ""
-          
-          # The release id to download files from 
-          # releaseId: ""
-          
-          # The name of the file to download.
-          # Use this field only to specify filenames other than tarball or zipball, if any.
-          # Supports wildcard pattern (eg: '*', '*.deb', '*.zip' etc..)
           fileName: "*\\+${{ matrix.unreal }}_*.zip"
-          # filename: BlueprintAttributes_0.5.0+5.3_8154e628.zip
-          # filename: "*.zip"
-
-          # Download the attached tarball (*.tar.gz)
-          # tarBall: false
-          
-          # Download the attached zipball (*.zip)
-          # zipBall: false
-          
-          # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
-          # It will create the target directory automatically if not present
-          # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
           out-file-path: "release-downloads"
-
-          # A flag to set if the downloaded assets are archives and should be extracted
-          # Checks all downloaded files if they end with zip, tar or tar.gz and extracts them, if true.
-          # Prints a warning if enabled but file is not an archive - but does not fail.
           extract: true
-
-          # Github access token to download files from private repositories
-          # https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
-          # eg: token: ${{ secrets.MY_TOKEN }}
           token: "${{ secrets.ACCESS_TOKEN }}"
 
-          # The URL of the Github API, only use this input if you are using Github Enterprise
-          # Default: "https://api.github.com"
-          # Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
-          # github-api-url: ""
-
       - name: Package Plugin
-        run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
+        # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
+        run: ue4 package
+        working-directory: release-downloads
 
       - name: move plugin
-        run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+        # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+        run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
 
       - name: Package Game
-        run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
+        # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
+        run: ue4 package ${{ inputs.build_configuration }}
+        working-directory: ${{ inputs.project_path }}
 
-      - name: rm container
-        if: always()
-        run: |
-          docker stop ${{ env.CONTAINER_NAME }}
-          docker rm ${{ env.CONTAINER_NAME }}
+      # - name: rm container
+      #   if: always()
+      #   run: |
+      #     docker stop ${{ env.CONTAINER_NAME }}
+      #     docker rm ${{ env.CONTAINER_NAME }}
