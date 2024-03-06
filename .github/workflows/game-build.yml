@@ -93,27 +93,43 @@ jobs:
 
       - uses: robinraju/release-downloader@v1.9
         if: ${{ inputs.plugin_repository != '' }}
+        id: release-download
         with: 
           repository: "${{ inputs.plugin_repository }}"
           latest: true
           fileName: "*\\+${{ matrix.unreal }}_*.zip"
           out-file-path: "release-downloads"
-          extract: true
+          # Messes up files on extract on windows (Getting during package: Public\Abilities\GBAAttributeSetBlueprintBase.h(18): Error: Invalid use of keyword 'UFUNCTION'.  It may only appear in Class, IInterface, and Interface scopes)
+          # extract: true
           token: "${{ secrets.ACCESS_TOKEN }}"
 
-      - name: Package Plugin
-        # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
-        run: ue4 package
-        working-directory: release-downloads
+      - name: Dump Inputs context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(inputs) }}
+        run: echo "$GITHUB_CONTEXT"
 
-      - name: move plugin
-        # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
-        run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+      - name: Debug release downloader
+        env:
+          RELEASE_CONTEXT: ${{ toJson(steps.release-download.outputs.downloaded_files)[0] }}
+        run: echo "$RELEASE_CONTEXT"
 
-      - name: Package Game
-        # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
-        run: ue4 package ${{ inputs.build_configuration }}
-        working-directory: ${{ inputs.project_path }}
+      # - name: Unzip release
+      #   run: |
+      #     Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/*.zip", "$PWD")
+
+      # - name: Package Plugin
+      #   # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
+      #   run: ue4 package
+      #   working-directory: release-downloads
+
+      # - name: move plugin
+      #   # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+      #   run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+
+      # - name: Package Game
+      #   # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
+      #   run: ue4 package ${{ inputs.build_configuration }}
+      #   working-directory: ${{ inputs.project_path }}
 
       # - name: rm container
       #   if: always()
