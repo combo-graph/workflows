@@ -146,8 +146,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: dist/*.zip
-          tag: build-${{ github.ref }}
-          release_name: build-nightly-${{ github.ref }}
+          tag: build-${{ github.ref_name }}
+          release_name: build-nightly-${{ github.ref_name }}
           repo_token: ${{ secrets.ACCESS_TOKEN }}
           overwrite: true
           file_glob: true
