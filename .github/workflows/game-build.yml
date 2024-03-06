@@ -110,29 +110,29 @@ jobs:
 
       - name: Debug release downloader
         env:
-          RELEASE_CONTEXT: ${{ toJson(steps.download.outputs) }}
-        run: echo "$RELEASE_CONTEXT"
+          FILE_CONTEXT: ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}
+        run: echo "$FILE_CONTEXT"
 
       - name: Debug release downloader file
         run: echo "File - ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}"
 
-      # - name: Unzip release
-      #   run: |
-      #     Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/*.zip", "$PWD")
+      - name: Unzip release
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$FILE_CONTEXT", "$PWD")
 
-      # - name: Package Plugin
-      #   # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
-      #   run: ue4 package
-      #   working-directory: release-downloads
+      - name: Package Plugin
+        # run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
+        run: ue4 package
+        working-directory: release-downloads
 
-      # - name: move plugin
-      #   # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
-      #   run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+      - name: move plugin
+        # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+        run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
 
-      # - name: Package Game
-      #   # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
-      #   run: ue4 package ${{ inputs.build_configuration }}
-      #   working-directory: ${{ inputs.project_path }}
+      - name: Package Game
+        # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
+        run: ue4 package ${{ inputs.build_configuration }}
+        working-directory: ${{ inputs.project_path }}
 
       # - name: rm container
       #   if: always()
