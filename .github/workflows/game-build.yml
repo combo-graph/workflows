@@ -125,10 +125,13 @@ jobs:
         # working-directory: release-downloads
 
       - name: move plugin
-        # run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
         run: |
-          docker exec ${{ env.CONTAINER_NAME }} mkdir Plugins
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
+          mkdir Plugins
+          npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
+        # run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
+        # run: |
+        #   docker exec ${{ env.CONTAINER_NAME }} mkdir Plugins
+        #   docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
 
       - name: Package Game
         run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
