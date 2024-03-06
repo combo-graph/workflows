@@ -108,17 +108,10 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(inputs) }}
         run: echo "$GITHUB_CONTEXT"
 
-      - name: Debug release downloader
+      - name: Set FILE_CONTEXT
         env:
           FILE_CONTEXT: ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}
-        # run: echo "$FILE_CONTEXT"
         run: echo "FILE_CONTEXT=${{ fromJson(steps.download.outputs.downloaded_files)[0] }}" >> $env:GITHUB_ENV
-        # run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
-
-      - name: Debug release downloader file
-        run: |
-          echo "File - ${{ fromJson(steps.download.outputs.downloaded_files)[0] }}"
-          echo "File env - ${{ env.FILE_CONTEXT }}"
 
       - name: Unzip release
         run: |
@@ -140,6 +133,18 @@ jobs:
         # run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
         run: ue4 package ${{ inputs.build_configuration }}
         working-directory: ${{ inputs.project_path }}
+
+      - name: Compress archive
+        run: Compress-Archive -Path .\dist\${{ inputs.platform }}\ -DestinationPath .\dist\GBA_ContentExamples_${{ inputs.build_configuration }}_${{ inputs.platform }}_${{ env.SHORT_SHA }}.zip
+        working-directory: ${{ inputs.project_path }}
+
+      - name: Upload game build to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: dist/*.zip
+          tag: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
+          overwrite: true
+          file_glob: true
 
       # - name: rm container
       #   if: always()
