@@ -1,0 +1,87 @@
+# Adjusted from the brilliant Ivan Tustanivsky who developed this for Sentry
+#
+# Credits to https://github.com/outoftheboxplugins/BuildMachines
+
+name: Game package build
+
+on:
+  workflow_call:
+    inputs:
+      ue_versions:
+        # Specify the list of unreal versions to build against
+        # Ex: "['5.1', '5.2', '5.3']"
+        default: "['5.3']"
+        type: string
+
+      platform:
+        default: Windows
+        description: Target platform to build on (Linux or Windows)
+        type: string
+
+      # BuildCookRun build config (one of development, test, shipping, etc.) - https://docs.unrealengine.com/5.3/en-US/build-configurations-reference-for-unreal-engine/
+      build_configuration:
+        default: "Development"
+        description: BuildCookRun build config (one of development, test, shipping, etc.) - https://docs.unrealengine.com/5.3/en-US/build-configurations-reference-for-unreal-engine/
+        type: string
+
+      # if game and .uproject to build lives under a sub-directory in the repo
+      project_path:
+        default: ""
+        description: if game to build lives under a sub-directory in the repo
+        type: string
+
+# Idea is to run the job in parallel in all three last engine versions, uncomment concurency group to only allow one at a time
+# concurrency:
+#   group: linux-compile-${{ github.head_ref }}
+#   cancel-in-progress: true
+
+jobs:
+
+  windows-build-plugin:
+    name: Game build (Windows) - ${{ matrix.unreal }}
+
+    if: github.actor == 'mklabs' && inputs.platform == 'Windows'
+    runs-on: [self-hosted, Windows]
+
+    strategy:
+      matrix:
+        unreal: ${{ fromJson(inputs.ue_versions) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get short SHA
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+
+      - name: Set container name
+        run: echo "CONTAINER_NAME=$("unreal-win64-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
+
+      - name: Switch to Windows Container
+        run: |
+          & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchWindowsEngine
+
+      # the ue4 group in the docker container: gid=1000
+      # Credits https://github.com/outoftheboxplugins/BuildMachines/blob/master/.github/workflows/compile-plugin.yml#L51
+      - name: Run Docker container
+        run: |
+          echo ${{ secrets.DOCKER_TOKEN }} | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
+          docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
+
+      - name: Install nodejs
+        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
+
+      - name: Installing UE CLI
+        run: |
+          docker exec ${{ env.CONTAINER_NAME }} pip3 install --upgrade pip
+          docker exec ${{ env.CONTAINER_NAME }} pip3 install ue4cli
+          docker exec ${{ env.CONTAINER_NAME }} ue4 setroot "C:\UnrealEngine"
+
+      - name: Package Game
+        run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
+
+      - name: rm container
+        if: always()
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }}
+          docker rm ${{ env.CONTAINER_NAME }}
