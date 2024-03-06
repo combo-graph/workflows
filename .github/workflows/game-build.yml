@@ -130,7 +130,7 @@ jobs:
           # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
           # It will create the target directory automatically if not present
           # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
-          out-file-path: "${{ inputs.plugin_path }}"
+          out-file-path: "release-downloads"
 
           # A flag to set if the downloaded assets are archives and should be extracted
           # Checks all downloaded files if they end with zip, tar or tar.gz and extracts them, if true.
@@ -146,6 +146,12 @@ jobs:
           # Default: "https://api.github.com"
           # Use http(s)://[hostname]/api/v3 to access the API for GitHub Enterprise Server
           # github-api-url: ""
+
+      - name: Package Plugin
+        run: docker exec -w C:\workspace\release-downloads ${{ env.CONTAINER_NAME }} ue4 package
+
+      - name: move plugin
+        run: docker exec -w C:\workspace\ ${{ env.CONTAINER_NAME }} npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
 
       - name: Package Game
         run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
