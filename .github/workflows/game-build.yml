@@ -139,7 +139,8 @@ jobs:
         # working-directory: ${{ inputs.project_path }}
 
       - name: Compress archive
-        run: Compress-Archive -Path .\dist\${{ inputs.platform }}\ -DestinationPath .\dist\GBA_ContentExamples_${{ inputs.build_configuration }}_${{ inputs.platform }}_${{ env.SHORT_SHA }}.zip
+        # run: Compress-Archive -Path .\dist\${{ inputs.platform }}\ -DestinationPath .\dist\GBA_ContentExamples_${{ inputs.build_configuration }}_${{ inputs.platform }}_${{ env.SHORT_SHA }}.zip
+        run: Compress-Archive -Path .\dist\${{ inputs.platform }}\ -DestinationPath .\dist\GBA_ContentExamples_${{ inputs.build_configuration }}_${{ inputs.platform }}.zip
         working-directory: ${{ inputs.project_path }}
 
       - name: Upload game build to release
@@ -151,6 +152,7 @@ jobs:
           repo_token: ${{ secrets.ACCESS_TOKEN }}
           overwrite: true
           file_glob: true
+          body: "Game ${{ inputs.build_configuration }} build for ${{ env.SHORT_SHA }}"
 
       - name: rm container
         if: always()
