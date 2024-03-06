@@ -114,9 +114,7 @@ jobs:
         run: echo "$RELEASE_CONTEXT"
 
       - name: Debug release downloader file
-        env:
-          FILE_CONTEXT: ${{ toJson(steps.download.outputs.downloaded_files)[0] }}
-        run: echo "$FILE_CONTEXT"
+        run: echo "File - ${{ steps.download.outputs.downloaded_files[0] }}"
 
       # - name: Unzip release
       #   run: |
