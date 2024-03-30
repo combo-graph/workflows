@@ -77,8 +77,8 @@ jobs:
           # --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 to run with GPU acceleration
           docker run --isolation process --device class/5B45201D-F2F2-4F3B-85BB-30FF1F953599 -td --name ${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:C:\workspace --workdir C:\workspace adamrehn/ue4-minimal:5.3.2
 
-      - name: Install nodejs
-        run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
+      # - name: Install nodejs
+      #   run: docker exec ${{ env.CONTAINER_NAME }} cinst nodejs.install -y
 
       - name: Installing UE CLI
         run: |
@@ -125,18 +125,10 @@ jobs:
         # working-directory: release-downloads
 
       - name: move plugin
-        # run: |
-        #   mkdir Plugins
-        #   npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
-        # run: npx shx -y cp -r release-downloads/dist ${{ inputs.plugin_path }}
-        # run: |
-        #   docker exec ${{ env.CONTAINER_NAME }} mkdir Plugins
-        #   docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r release-downloads/dist ${{ inputs.plugin_path }}
-
         # Move packaged plugin into Engine in the container, to fix an issue with BP only project package build.
         run: |
-          docker exec ${{ env.CONTAINER_NAME }} mkdir C:\UnrealEngine\Engine\Plugins\Marketplace
-          docker exec ${{ env.CONTAINER_NAME }} npx -y shx cp -r C:\workspace\release-downloads\dist C:\UnrealEngine\Engine\Plugins\Marketplace\BlueprintAttributes
+          docker exec ${{ env.CONTAINER_NAME }} powershell -command "mkdir C:\UnrealEngine\Engine\Plugins\Marketplace"
+          docker exec ${{ env.CONTAINER_NAME }} powershell -command "Copy-Item -Path 'C:\workspace\release-downloads\dist' -Destination 'C:\UnrealEngine\Engine\Plugins\Marketplace\BlueprintAttributes' -Recurse"
 
       - name: Package Game
         run: docker exec -w C:\workspace\${{ inputs.project_path }} ${{ env.CONTAINER_NAME }} ue4 package ${{ inputs.build_configuration }}
