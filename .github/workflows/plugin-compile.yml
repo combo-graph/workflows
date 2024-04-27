@@ -101,14 +101,6 @@ jobs:
       - name: Package plugin
         run: docker exec -w /workspace/${{ inputs.plugin_path }} ${{ env.CONTAINER_NAME }} ue4 package
 
-      # Note: Would only work with main plugin and tests plugin separated, eg. ./Plugin and ./PluginTests
-      # Would need to rework the worfklow or provide more input options for more flexibility
-      - name: Setup TP_Blank template project to run tests within
-        if: ${{ inputs.tests_suite != '' }}
-        run: |
-          npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
-          npx -y shx mkdir -p TP_Blank/Plugins
-
       - name: Setup TP_Blank template project to run tests within
         if: ${{ inputs.tests_suite != '' }}
         uses: actions/checkout@v4
