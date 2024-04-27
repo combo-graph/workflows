@@ -101,7 +101,7 @@ jobs:
       - name: Package plugin
         run: docker exec -w /workspace/${{ inputs.plugin_path }} ${{ env.CONTAINER_NAME }} ue4 package
 
-      - name: Setup TP_Blank template project to run tests within
+      - name: Setup TP_Blank template project to run tests within > sparse checkout of EpicGames/UnrealEngine/Templates/TP_Blank
         if: ${{ inputs.tests_suite != '' }}
         uses: actions/checkout@v4
         with:
@@ -111,6 +111,11 @@ jobs:
           path: TP_Blank
           sparse-checkout: Templates/TP_Blank
           sparse-checkout-cone-mode: false
+
+      - name: Setup TP_Blank template project to run tests within > make Plugins/ dir
+        if: ${{ inputs.tests_suite != '' }}
+        run: |
+          npx -y shx mkdir -p TP_Blank/Plugins
 
       # case plugin_path is provided
       - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
