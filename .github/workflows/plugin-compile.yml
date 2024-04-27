@@ -119,7 +119,7 @@ jobs:
       - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
         if: ${{ inputs.tests_suite != '' && inputs.plugin_path == '' }}
         run: |
-          npx -y shx cp -r dist TP_Blank/Plugins/${{ github.repository }}
+          npx -y shx cp -r dist TP_Blank/Plugins/${{ github.event.repository.name }}
 
       # case tests_plugin_path is provided (Tests plugin lives in the same repo)
       - name: Setup TP_Blank template project to run tests within > Copy tests plugin to Plugins
