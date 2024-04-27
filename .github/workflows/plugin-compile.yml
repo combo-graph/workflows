@@ -24,6 +24,18 @@ on:
         description: if plugin to build lives under a sub-directory in the repo
         type: string
 
+      # if tests are contained in their own plugin, under a sub-directory in the repo (Tests plugin lives in the same repo)
+      tests_plugin_path:
+        default: ""
+        description: if tests are contained in their own plugin, under a sub-directory in the repo (Tests plugin lives in the same repo)
+        type: string
+
+      # if tests are contained in their own plugin and lives in another repository (will checkout the project within TP_Blank test project where tests are run)
+      tests_plugin_repository:
+        default: ""
+        description: if tests are contained in their own plugin and lives in another repository (will checkout the project within TP_Blank test project where tests are run)
+        type: string
+
       # Name of the Filter to pass down to Automation RunTests ...
       tests_suite:
         default: ""
@@ -96,8 +108,32 @@ jobs:
         run: |
           npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
           npx -y shx mkdir -p TP_Blank/Plugins
+
+      # case plugin_path is provided
+      - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
+        if: ${{ inputs.tests_suite != '' && inputs.plugin_path != '' }}
+        run: |
           npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
-          npx -y shx cp -r ${{ inputs.plugin_path }}Tests TP_Blank/Plugins/${{ inputs.plugin_path }}Tests
+
+      # case plugin_path is empty
+      - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
+        if: ${{ inputs.tests_suite != '' && inputs.plugin_path == '' }}
+        run: |
+          npx -y shx cp -r dist TP_Blank/Plugins/${{ github.repository }}
+
+      # case tests_plugin_path is provided (Tests plugin lives in the same repo)
+      - name: Setup TP_Blank template project to run tests within > Copy tests plugin to Plugins
+        if: ${{ inputs.tests_suite != '' && inputs.tests_plugin_path != '' }}
+        run: |
+          npx -y shx cp -r ${{ inputs.tests_plugin_path }} TP_Blank/Plugins/${{ inputs.tests_plugin_path }}
+
+      # case Tests plugin is in another repo
+      - name: Checkout Test repo within TP_Blank
+        if: ${{ inputs.tests_suite != '' && inputs.tests_plugin_repository != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.tests_plugin_repository }}
+          path: TP_Blank/Plugins/${{ inputs.tests_plugin_repository }}
 
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
