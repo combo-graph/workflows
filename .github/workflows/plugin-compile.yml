@@ -9,8 +9,8 @@ on:
     inputs:
       ue_versions:
         # Specify the list of unreal versions to build against
-        # Ex: "['5.1', '5.2', '5.3']"
-        default: "['5.3']"
+        # Ex: "['5.1.1', '5.2.2', '5.3.2']"
+        default: "['5.3.2']"
         type: string
 
       platform:
@@ -108,6 +108,17 @@ jobs:
         run: |
           npx -y shx cp -r "${{ secrets.WIN_UNREAL_ENGINE_ROOT }}UE_${{ matrix.unreal }}/Templates/TP_Blank" TP_Blank
           npx -y shx mkdir -p TP_Blank/Plugins
+
+      - name: Setup TP_Blank template project to run tests within
+        if: ${{ inputs.tests_suite != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: EpicGames/UnrealEngine
+          token: ${{ secrets.DOCKER_TOKEN }}
+          ref: ${{ matrix.unreal }}-release
+          path: TP_Blank
+          sparse-checkout: Templates/TP_Blank
+          sparse-checkout-cone-mode: false
 
       # case plugin_path is provided
       - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
