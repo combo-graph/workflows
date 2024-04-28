@@ -68,6 +68,10 @@ jobs:
       - name: Set container name
         run: echo "CONTAINER_NAME=$("unreal-${{ matrix.unreal }}-${{ env.SHORT_SHA }}")" >> $env:GITHUB_ENV
 
+      - name: Set container name
+        if: ${{ inputs.tests_suite != '' && inputs.tests_plugin_repository != '' }}
+        run: echo "TEST_PLUGIN_NAME=$(echo ${{ inputs.tests_plugin_repository | | awk -F / '{print $2}' }} )" >> $env:GITHUB_ENV
+
       - name: Switch to Linux Container
         run: |
           & "$Env:ProgramFiles\Docker\Docker\DockerCli.exe" -Verbose -SwitchLinuxEngine
@@ -141,7 +145,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.tests_plugin_repository }}
-          path: TP/Templates/TP_Blank/Plugins/${{ inputs.tests_plugin_repository }}
+          path: TP/Templates/TP_Blank/Plugins/${{ env.TEST_PLUGIN_NAME }}
 
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
