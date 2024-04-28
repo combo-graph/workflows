@@ -108,32 +108,32 @@ jobs:
           repository: EpicGames/UnrealEngine
           token: ${{ secrets.DOCKER_TOKEN }}
           ref: ${{ matrix.unreal }}-release
-          path: TP_Blank
+          path: ''
           sparse-checkout: Templates/TP_Blank
           sparse-checkout-cone-mode: false
 
       - name: Setup TP_Blank template project to run tests within > make Plugins/ dir
         if: ${{ inputs.tests_suite != '' }}
         run: |
-          npx -y shx mkdir -p TP_Blank/Plugins
+          npx -y shx mkdir -p Templates/TP_Blank/Plugins
 
       # case plugin_path is provided
       - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
         if: ${{ inputs.tests_suite != '' && inputs.plugin_path != '' }}
         run: |
-          npx -y shx cp -r ${{ inputs.plugin_path }}/dist TP_Blank/Plugins/${{ inputs.plugin_path }}
+          npx -y shx cp -r ${{ inputs.plugin_path }}/dist Templates/TP_Blank/Plugins/${{ inputs.plugin_path }}
 
       # case plugin_path is empty
       - name: Setup TP_Blank template project to run tests within > Copy plugin to Plugins/
         if: ${{ inputs.tests_suite != '' && inputs.plugin_path == '' }}
         run: |
-          npx -y shx cp -r dist TP_Blank/Plugins/${{ github.event.repository.name }}
+          npx -y shx cp -r dist Templates/TP_Blank/Plugins/${{ github.event.repository.name }}
 
       # case tests_plugin_path is provided (Tests plugin lives in the same repo)
       - name: Setup TP_Blank template project to run tests within > Copy tests plugin to Plugins
         if: ${{ inputs.tests_suite != '' && inputs.tests_plugin_path != '' }}
         run: |
-          npx -y shx cp -r ${{ inputs.tests_plugin_path }} TP_Blank/Plugins/${{ inputs.tests_plugin_path }}
+          npx -y shx cp -r ${{ inputs.tests_plugin_path }} Templates/TP_Blank/Plugins/${{ inputs.tests_plugin_path }}
 
       # case Tests plugin is in another repo
       - name: Checkout Test repo within TP_Blank
@@ -141,19 +141,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.tests_plugin_repository }}
-          path: TP_Blank/Plugins/${{ inputs.tests_plugin_repository }}
+          path: Templates/TP_Blank/Plugins/${{ inputs.tests_plugin_repository }}
 
       - name: ue4 build Development Editor TP_Blank
         if: ${{ inputs.tests_suite != '' }}
-        run: docker exec -w /workspace/TP_Blank ${{ env.CONTAINER_NAME }} ue4 build Development Editor
-        working-directory: ${{ github.workspace }}/TP_Blank
+        run: docker exec -w /workspace/Templates/TP_Blank ${{ env.CONTAINER_NAME }} ue4 build Development Editor
+        working-directory: ${{ github.workspace }}/Templates/TP_Blank
 
       # Note: Got "Refusing to run with the root privileges." error when running the test suite
       # Trying with creating 1234 "gh" user
       - name: Run Tests (editor mode, no -game)
         if: ${{ inputs.tests_suite != '' }}
-        run: docker exec -w /workspace/TP_Blank ${{ env.CONTAINER_NAME }} ue4 editor "/workspace/TP_Blank/TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="/workspace/TestReports/TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}"
-        working-directory: ${{ github.workspace }}/TP_Blank
+        run: docker exec -w /workspace/Templates/TP_Blank ${{ env.CONTAINER_NAME }} ue4 editor "/workspace/Templates/TP_Blank/TP_Blank.uproject" -ExecCmds="Automation RunTests ${{ inputs.tests_suite }};quit" -unattended -nopause -buildmachine -stdout -fullstdoutlogoutput -forcelogflush -nosplash -nullrhi -ReportOutputPath="/workspace/TestReports/TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}"
+        working-directory: ${{ github.workspace }}/Templates/TP_Blank
 
       - name: Setup test report index.html (see https://gist.github.com/mklabs/98a3badabcdef902618e0a59a935b597)
         if: always() && ${{ inputs.tests_suite != '' }}
