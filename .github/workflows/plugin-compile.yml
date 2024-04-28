@@ -70,7 +70,7 @@ jobs:
 
       - name: Set container name
         if: ${{ inputs.tests_suite != '' && inputs.tests_plugin_repository != '' }}
-        run: echo "TEST_PLUGIN_NAME=$(echo ${{ inputs.tests_plugin_repository | | awk -F / '{print $2}' }} )" >> $env:GITHUB_ENV
+        run: echo "TEST_PLUGIN_NAME=$(echo ${{ inputs.tests_plugin_repository | awk -F / '{print $2}' }} )" >> $env:GITHUB_ENV
 
       - name: Switch to Linux Container
         run: |
