@@ -94,7 +94,7 @@ jobs:
 
       - name: Set TEST_PLUGIN_NAME
         if: ${{ inputs.tests_suite != '' && inputs.tests_plugin_repository != '' }}
-        run: echo "TEST_PLUGIN_NAME=$(docker compose exec matchmaker bash -c "echo ${{ inputs.tests_plugin_repository }} | awk -F / '{print `$2}'")" >> $env:GITHUB_ENV
+        run: echo "TEST_PLUGIN_NAME=$(docker compose exec ${{ env.CONTAINER_NAME }} bash -c "echo ${{ inputs.tests_plugin_repository }} | awk -F / '{print `$2}'")" >> $env:GITHUB_ENV
 
       - name: Installing UE CLI
         run: |
