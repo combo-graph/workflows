@@ -83,6 +83,8 @@ jobs:
           # For Plugins, would ideally be better to only chown their Content/ directory
           docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/Mono/Linux
           docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/DotNet
+          # docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Plugins/VirtualProduction/CaptureData/Intermediate/Build/Linux/UnrealEditor/Inc/CaptureDataUtils/UHT/Timestamp
+          docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Plugins/VirtualProduction/CaptureData/
 
           # Note: These two are nice to have to avoid some warnings down the line during test about permission issues on Content folders
           # but that takes a lot of time for docker to process
