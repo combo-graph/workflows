@@ -9,7 +9,7 @@ on:
     inputs:
       ue_versions:
         # Ex: "['5.1.1', '5.2.2', '5.3.2']"
-        default: "['5.2.1', '5.3.2', '5.4.2']"
+        default: "['5.3.2', '5.4.4', '5.5.0-preview-1']"
         description: Specify the list of unreal versions to build against
         type: string
 
@@ -83,6 +83,8 @@ jobs:
           # For Plugins, would ideally be better to only chown their Content/ directory
           docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/Mono/Linux
           docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Binaries/ThirdParty/DotNet
+          # docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Plugins/VirtualProduction/CaptureData/Intermediate/Build/Linux/UnrealEditor/Inc/CaptureDataUtils/UHT/Timestamp
+          docker exec --user root ${{ env.CONTAINER_NAME }} chown -R 1234 /home/ue4/UnrealEngine/Engine/Plugins/VirtualProduction/CaptureData/
 
           # Note: These two are nice to have to avoid some warnings down the line during test about permission issues on Content folders
           # but that takes a lot of time for docker to process
@@ -111,7 +113,8 @@ jobs:
         with:
           repository: EpicGames/UnrealEngine
           token: ${{ secrets.DOCKER_TOKEN }}
-          ref: ${{ matrix.unreal }}-release
+          # Append "-release" prefix only if not a preview tag. If a preview tag, docker image tag is expected to be the exact same as git release tag (after dev-slim-, e.g. ${{ matrix.unreal }})
+          ref: ${{ matrix.unreal }}${{ !contains(matrix.unreal, 'preview') && '-release' || '' }}
           path: TP
           sparse-checkout: Templates/TP_Blank
           sparse-checkout-cone-mode: false
