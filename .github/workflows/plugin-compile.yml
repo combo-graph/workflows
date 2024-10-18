@@ -113,7 +113,7 @@ jobs:
 
         # trying to fix unable to copy .git/objects in 5.5-preview-1 container: https://github.com/combo-graph/combo-graph/actions/runs/11394285232/job/31704693114?pr=56
         run: |
-          docker exec -w /workspace/ rm -rf .git
+          docker exec -w /workspace/ ${{ env.CONTAINER_NAME }} rm -rf .git
           docker exec -w /workspace/${{ inputs.plugin_path }} ${{ env.CONTAINER_NAME }} ue4 package
 
       - name: Setup TP_Blank template project to run tests within > sparse checkout of EpicGames/UnrealEngine/Templates/TP_Blank
