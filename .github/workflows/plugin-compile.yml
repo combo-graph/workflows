@@ -181,7 +181,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always() && inputs.tests_suite != ''
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}
           path: ${{ github.workspace }}/TestReports/TestReports-${{ matrix.unreal }}-Linux-${{ env.SHORT_SHA }}/*
@@ -278,7 +278,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always() && inputs.tests_suite != ''
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: TestReports-${{ matrix.unreal }}-Windows-${{ env.SHORT_SHA }}
           path: ${{ github.workspace }}/TestReports/TestReports-${{ matrix.unreal }}-Windows-${{ env.SHORT_SHA }}/*
